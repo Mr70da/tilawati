@@ -15,7 +15,7 @@
 [![Offline](https://img.shields.io/badge/recognition-on--device-B08236?style=flat-square)](#privacy)
 [![License](https://img.shields.io/badge/license-MIT-555?style=flat-square)](LICENSE)
 
-<a href="https://github.com/Mr70da/tilawati/releases/latest/download/Tilawati-1.1.0-arm64.apk"><img src="https://img.shields.io/badge/Download%20APK-Android%20·%20144%20MB-0F5D46?style=for-the-badge&logo=android&logoColor=white" alt="Download APK" height="40"/></a>
+<a href="https://github.com/Mr70da/tilawati/releases/latest/download/Tilawati-1.2.0-arm64.apk"><img src="https://img.shields.io/badge/Download%20APK-Android%20·%20144%20MB-0F5D46?style=for-the-badge&logo=android&logoColor=white" alt="Download APK" height="40"/></a>
 
 <sub>Android 64-bit · <a href="https://github.com/Mr70da/tilawati/releases/latest">release notes</a> · تحميل التطبيق</sub>
 
@@ -30,13 +30,15 @@
 |                                  |                                                                                                                                                                                                                   |
 | -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 🎙️ **Live recitation following** | Start anywhere in the Quran. Within a few words Tilawati finds the surah and ayah, highlights each word as you recite it and scrolls with you.                                                                    |
-| 🧠 **Hifz test**                 | Pick a surah and ayah range. Upcoming words are hidden (or faded) and appear only as you recite them correctly.                                                                                                   |
+| 🧠 **Hifz test**                 | Pick a surah and ayah range. Upcoming words are hidden (or faded) and appear only as you recite them correctly. Stuck? Tap the bulb to reveal the next word.                                                      |
 | ⚠️ **Memorization mistakes**     | Wrong, missed and extra words and skipped passages are flagged amber while suspected, red once confirmed. Tap one to see the correct word.                                                                        |
 | 🎧 **Listen & repeat**           | Hear each ayah from Al-Husary, Mishary Alafasy or Al-Minshawi, then repeat it. The microphone opens on your turn, and the next ayah plays once you finish. Audio downloads the first time and then plays offline. |
 | 📖 **Madani mushaf**             | All 604 pages, paged right-to-left like a printed copy, with surah and juz navigation, bookmarks and "recite from here".                                                                                          |
 | 📚 **Tafsir**                    | Long-press any ayah for its tafsir: Al-Muyassar, As-Sa'di or Ibn Kathir in Arabic, or Ibn Kathir and Ma'arif al-Qur'an in English. Each surah downloads once, then reads offline.                                 |
-| 🎯 **Daily goal**                | Set a daily wird in pages, ayahs or minutes, follow it on Home, and keep a goal streak. An optional reminder comes at the time you choose and stays quiet once you've finished for the day.                       |
+| 🎯 **Daily wird**                | Set a daily goal in pages, ayahs or minutes. The wird continues where you stopped, all the way through the Quran, with a goal streak, your khatma progress and an optional gentle reminder.                       |
+| 📲 **Home-screen widget**        | Today's wird progress and where it continues, right on your home screen. Tap it to start reciting.                                                                                                                |
 | 📈 **Progress**                  | Every session is saved with its accuracy and mistakes, plus a daily streak, weekly minutes and the surahs that need review.                                                                                       |
+| 💾 **Backup & share**            | Save your history, wird and settings to a file (Google Drive, Files…) and restore them on a new phone. Share any session result as an image, for example with your teacher.                                       |
 | 🌍 **Arabic first**              | Arabic interface with full right-to-left layout and Arabic-Indic numerals; English is one tap away. Light and dark themes.                                                                                        |
 | 🔒 **Private by design**         | Speech recognition runs on the phone and your voice is never uploaded. The internet is used only to download recitation audio and tafsir.                                                                         |
 
@@ -45,24 +47,23 @@
 <div align="center" dir="ltr">
 <table dir="ltr">
   <tr>
-    <td align="center" width="33%"><img src="docs/screenshots/01-splash.png" width="230" alt="Splash screen with the Tilawati icon"/><br/><sub><b>Launch · the new icon</b></sub></td>
-    <td align="center" width="33%"><img src="docs/screenshots/02-home.png" width="230" alt="Home"/><br/><sub><b>Home · الرئيسية</b></sub></td>
-    <td align="center" width="33%"><img src="docs/screenshots/03-recite.png" width="230" alt="Live recitation"/><br/><sub><b>Following Ya-Sin live</b></sub></td>
+    <td align="center" width="33%"><img src="docs/screenshots/01-home.png" width="230" alt="Home with today's wird"/><br/><sub><b>Home · today's wird</b></sub></td>
+    <td align="center" width="33%"><img src="docs/screenshots/02-hifz-test.png" width="230" alt="Hifz test filling in as you recite"/><br/><sub><b>Hifz test, words appear as you recite</b></sub></td>
+    <td align="center" width="33%"><img src="docs/screenshots/03-summary.png" width="230" alt="Session summary with score"/><br/><sub><b>Session summary · share it</b></sub></td>
   </tr>
   <tr>
-    <td align="center" width="33%"><img src="docs/screenshots/04-hifz-test.png" width="230" alt="Hifz test"/><br/><sub><b>Hifz test, words hidden · اختبار الحفظ</b></sub></td>
-    <td align="center" width="33%"><img src="docs/screenshots/05-hifz-setup.png" width="230" alt="Hifz setup"/><br/><sub><b>Choose a passage</b></sub></td>
-    <td align="center" width="33%"><img src="docs/screenshots/06-mushaf.png" width="230" alt="Mushaf"/><br/><sub><b>Mushaf · المصحف</b></sub></td>
+    <td align="center" width="33%"><img src="docs/screenshots/04-mushaf.png" width="230" alt="Mushaf"/><br/><sub><b>Mushaf · المصحف</b></sub></td>
+    <td align="center" width="33%"><img src="docs/screenshots/05-tafsir.png" width="230" alt="Tafsir of Ayat al-Kursi"/><br/><sub><b>Tafsir · Ayat al-Kursi</b></sub></td>
+    <td align="center" width="33%"><img src="docs/screenshots/06-hifz-setup.png" width="230" alt="Choose a passage"/><br/><sub><b>Choose a passage · listen & repeat</b></sub></td>
   </tr>
   <tr>
-    <td align="center" width="33%"><img src="docs/screenshots/07-summary.png" width="230" alt="Session summary"/><br/><sub><b>Session summary</b></sub></td>
-    <td align="center" width="33%"><img src="docs/screenshots/08-settings.png" width="230" alt="Settings"/><br/><sub><b>Settings · الإعدادات</b></sub></td>
-    <td width="33%" valign="middle">
-      <b>Dark and light, Arabic and English.</b><br/><br/>
-      The dark screenshots come from a REDMI Note 15 Pro running the release build. The light ones come from an Android emulator replaying a real recitation of Ya-Sin 36:1–5 through the same engine.
-    </td>
+    <td align="center" width="33%"><img src="docs/screenshots/07-welcome.png" width="230" alt="First-launch tour"/><br/><sub><b>First-launch tour</b></sub></td>
+    <td align="center" width="33%"><img src="docs/screenshots/08-settings.png" width="230" alt="Daily goal and reminder settings"/><br/><sub><b>Daily goal & reminder</b></sub></td>
+    <td align="center" width="33%"><img src="docs/screenshots/09-widget.png" width="230" alt="Home-screen widget"/><br/><sub><b>Home-screen widget</b></sub></td>
   </tr>
 </table>
+
+<sub>Light theme on a REDMI Note 15 Pro running the release build. A dark theme is one tap away in Settings.</sub>
 </div>
 
 ## How it works
@@ -99,7 +100,7 @@ Both model tiers ship inside the app, so nothing is ever downloaded:
 
 ### Just want the app?
 
-Download **[Tilawati-1.1.0-arm64.apk](https://github.com/Mr70da/tilawati/releases/latest/download/Tilawati-1.1.0-arm64.apk)** on your Android phone and open it. Android will ask you to allow installing from your browser or file manager. The app tells you when a newer version is out.
+Download **[Tilawati-1.2.0-arm64.apk](https://github.com/Mr70da/tilawati/releases/latest/download/Tilawati-1.2.0-arm64.apk)** on your Android phone and open it. Android will ask you to allow installing from your browser or file manager. The app tells you when a newer version is out.
 
 ### Run on a phone or emulator
 

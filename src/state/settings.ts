@@ -83,6 +83,12 @@ export function getSettings(): Settings {
   return load();
 }
 
+/** Re-reads the settings from the database (after a backup is restored). */
+export function reloadSettings() {
+  settings = null;
+  for (const l of listeners) l();
+}
+
 export function updateSettings(patch: Partial<Settings>) {
   settings = { ...load(), ...patch };
   kvSet("settings", JSON.stringify(settings));

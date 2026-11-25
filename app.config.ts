@@ -9,7 +9,7 @@ const release = process.env.TILAWATI_RELEASE === "1";
 const config: ExpoConfig = {
   name: "Tilawati",
   slug: "tilawati",
-  version: "1.1.0",
+  version: "1.2.0",
   orientation: "portrait",
   icon: "./assets/images/icon.png",
   scheme: "tilawati",
@@ -17,7 +17,7 @@ const config: ExpoConfig = {
   backgroundColor: "#0B1F1A",
   android: {
     package: "com.exab.tilawati",
-    versionCode: 2,
+    versionCode: 3,
     adaptiveIcon: {
       backgroundColor: "#0B3D2E",
       foregroundImage: "./assets/images/android-icon-foreground.png",
@@ -39,6 +39,29 @@ const config: ExpoConfig = {
     "./plugins/withReleaseSigning",
     "expo-router",
     "expo-sqlite",
+    [
+      "react-native-android-widget",
+      {
+        fonts: [
+          "./node_modules/@expo-google-fonts/ibm-plex-sans-arabic/400Regular/IBMPlexSansArabic_400Regular.ttf",
+          "./node_modules/@expo-google-fonts/ibm-plex-sans-arabic/700Bold/IBMPlexSansArabic_700Bold.ttf",
+        ],
+        widgets: [
+          {
+            name: "Wird",
+            label: "Tilawati · Daily wird",
+            description: "Today's wird progress; tap to continue reciting",
+            minWidth: "250dp",
+            minHeight: "110dp",
+            targetCellWidth: 4,
+            targetCellHeight: 2,
+            resizeMode: "horizontal|vertical",
+            updatePeriodMillis: 1800000,
+            previewImage: "./assets/images/widget-preview.png",
+          },
+        ],
+      },
+    ],
     ["expo-notifications", { icon: "./assets/images/notification-icon.png", color: "#13704F" }],
     ["expo-localization", { supportsRTL: false }],
     "onnxruntime-react-native",

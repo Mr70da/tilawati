@@ -18,6 +18,7 @@ import { database } from "@/db";
 import { ensureWarm, getTilawa, isWarm } from "@/engine/service";
 import { initI18n, useI18n } from "@/i18n";
 import { startReminders } from "@/notify/reminder";
+import { startWidgetSync } from "@/widget/update";
 import { loadQuran } from "@/quran";
 import { getSettings } from "@/state/settings";
 import { fonts, useTheme } from "@/ui/theme";
@@ -55,6 +56,7 @@ export default function RootLayout() {
     if (!ready) return;
     SplashScreen.hideAsync().catch(() => {});
     startReminders();
+    startWidgetSync();
     // Load the model in the background (native, doesn't block the UI), then build the engine's indexes once the
     // user has been idle for a moment: that step blocks JS for a few seconds and would swallow taps.
     let cancelled = false;
@@ -102,6 +104,8 @@ export default function RootLayout() {
           <Stack.Screen name="jump" options={{ presentation: "modal", animation: "slide_from_bottom" }} />
           <Stack.Screen name="credits" />
           <Stack.Screen name="tafsir" />
+          <Stack.Screen name="wird" options={{ animation: "none" }} />
+          <Stack.Screen name="welcome" options={{ animation: "fade", gestureEnabled: false }} />
         </Stack>
         {warming && <WarmingPill />}
       </SafeAreaProvider>

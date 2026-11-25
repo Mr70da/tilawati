@@ -45,3 +45,6 @@ example
 
 # Local AI-assistant settings
 .claude/
+
+# editor settings
+.vscode/

@@ -1,9 +1,10 @@
 import { View } from "react-native";
-import { Tabs } from "expo-router";
+import { Redirect, Tabs } from "expo-router";
 import type { BottomTabBarProps } from "expo-router/build/layouts/Tabs";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useI18n } from "@/i18n";
+import { useSettings } from "@/state/settings";
 import { T, Tap } from "@/ui/kit";
 import type { IconName } from "@/ui/kit";
 import { radius, useTheme } from "@/ui/theme";
@@ -69,6 +70,9 @@ function TabBar({ state, navigateToTab }: BottomTabBarProps) {
 
 export default function TabsLayout() {
   const { c } = useTheme();
+  const { onboarded } = useSettings();
+  // First launch (or a fresh install): a short tour of what the app does before Home.
+  if (!onboarded) return <Redirect href="/welcome" />;
   return (
     <Tabs tabBar={(p) => <TabBar {...p} />} screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: c.bg }, animation: "shift" }}>
       <Tabs.Screen name="index" />

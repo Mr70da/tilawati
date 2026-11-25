@@ -1,9 +1,12 @@
 /** Session summary: score, the passage with mistakes marked inline, and the list of mistakes. */
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Alert, ScrollView, View } from "react-native";
+import type { HostInstance } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
+import * as Sharing from "expo-sharing";
+import { captureRef } from "react-native-view-shot";
 import { deleteSession, getSession, sessionMistakes } from "@/db";
 import { useI18n } from "@/i18n";
 import { ayahRange, ayahWords, surah, wordAt } from "@/quran";
@@ -25,6 +28,7 @@ export default function SessionDetail() {
   const session = useDb(() => getSession(id), [id]);
   const mistakes = useDb(() => sessionMistakes(id), [id]);
   const [showAll, setShowAll] = useState(false);
+  const shot = useRef<HostInstance>(null);
 
   const ayahs: AyahId[] = useMemo(() => {
     if (!session) return [];
@@ -84,6 +88,16 @@ export default function SessionDetail() {
       },
     ]);
 
+  /** Shares the score card as an image, e.g. with a teacher. */
+  const share = async () => {
+    try {
+      const uri = await captureRef(shot, { format: "png", quality: 1, result: "tmpfile" });
+      await Sharing.shareAsync(uri, { mimeType: "image/png", dialogTitle: t("summary.share") });
+    } catch {
+      // The share sheet was closed or the capture failed: nothing to do.
+    }
+  };
+
   const retry = () => {
     const first = ayahs[0];
     const last = ayahs[ayahs.length - 1];
@@ -98,45 +112,67 @@ export default function SessionDetail() {
         back
         title={t("summary.title")}
         subtitle={`${sessionTitle(session, lang)} · ${t(`history.${session.mode}`)}`}
-        trailing={<IconButton icon="trash-outline" label={t("summary.delete")} onPress={remove} tint={c.danger} />}
+        trailing={
+          <Row gap={space(1)}>
+            <IconButton icon="share-social-outline" label={t("summary.share")} onPress={share} />
+            <IconButton icon="trash-outline" label={t("summary.delete")} onPress={remove} tint={c.danger} />
+          </Row>
+        }
       />
       <ScrollView contentContainerStyle={{ padding: space(2), gap: space(2), paddingBottom: space(4) }}>
         <Animated.View entering={FadeIn.duration(320)}>
-          <Card style={{ alignItems: "center", paddingVertical: space(3) }}>
-            <View
-              style={{
-                width: 132,
-                height: 132,
-                borderRadius: 66,
-                borderWidth: 10,
-                borderColor: ringColor,
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: c.surfaceAlt,
-              }}
-            >
-              <T v="display" center color={ringColor}>
-                {num(accuracy)}%
+          {/* This card is what "Share" captures, so it names the passage and the app itself. */}
+          <View ref={shot} collapsable={false} style={{ backgroundColor: c.bg, borderRadius: radius.xl }}>
+            <Card style={{ alignItems: "center", paddingVertical: space(3) }}>
+              <T v="heading" center style={{ marginBottom: 2 }}>
+                {sessionTitle(session, lang)}
               </T>
-              <T v="caption" muted center>
-                {t("summary.accuracy")}
+              <T v="caption" muted center style={{ marginBottom: space(2) }}>
+                {t(`history.${session.mode}`)} ·{" "}
+                {new Date(session.startedAt).toLocaleDateString(lang === "ar" ? "ar-EG" : "en-GB", {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                })}
               </T>
-            </View>
-            <T v="title" center style={{ marginTop: space(1.5) }}>
-              {t(`summary.${verdict}`)}
-            </T>
-            <Row style={{ marginTop: space(2), justifyContent: "space-around", alignSelf: "stretch" }}>
-              <Mini icon="time-outline" value={formatDuration(session.durationMs, num)} label={t("summary.duration")} />
-              <Mini icon="text-outline" value={`${num(score.correct)}/${num(score.total)}`} label={t("summary.words")} />
-              {score.hints > 0 && <Mini icon="bulb-outline" value={num(score.hints)} label={t("summary.hints")} color={c.gold} />}
-              <Mini
-                icon="alert-circle-outline"
-                value={num(confirmed.length)}
-                label={t("summary.mistakes")}
-                color={confirmed.length ? c.danger : undefined}
-              />
-            </Row>
-          </Card>
+              <View
+                style={{
+                  width: 132,
+                  height: 132,
+                  borderRadius: 66,
+                  borderWidth: 10,
+                  borderColor: ringColor,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor: c.surfaceAlt,
+                }}
+              >
+                <T v="display" center color={ringColor}>
+                  {num(accuracy)}%
+                </T>
+                <T v="caption" muted center>
+                  {t("summary.accuracy")}
+                </T>
+              </View>
+              <T v="title" center style={{ marginTop: space(1.5) }}>
+                {t(`summary.${verdict}`)}
+              </T>
+              <Row style={{ marginTop: space(2), justifyContent: "space-around", alignSelf: "stretch" }}>
+                <Mini icon="time-outline" value={formatDuration(session.durationMs, num)} label={t("summary.duration")} />
+                <Mini icon="text-outline" value={`${num(score.correct)}/${num(score.total)}`} label={t("summary.words")} />
+                {score.hints > 0 && <Mini icon="bulb-outline" value={num(score.hints)} label={t("summary.hints")} color={c.gold} />}
+                <Mini
+                  icon="alert-circle-outline"
+                  value={num(confirmed.length)}
+                  label={t("summary.mistakes")}
+                  color={confirmed.length ? c.danger : undefined}
+                />
+              </Row>
+              <T v="caption" color={c.textFaint} center style={{ marginTop: space(2) }}>
+                {t("appName")} · {t("summary.brand")}
+              </T>
+            </Card>
+          </View>
         </Animated.View>
 
         {confirmed.length === 0 ? (

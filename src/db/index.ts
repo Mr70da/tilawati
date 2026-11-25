@@ -283,3 +283,46 @@ export function subscribeDb(fn: () => void): () => void {
   return () => subscribers.delete(fn);
 }
 export const dbRevision = () => revision;
+
+// ---------- backup ----------
+
+type Row = Record<string, string | number | null>;
+
+/** The tables a backup carries, in an order that respects foreign keys. */
+const BACKUP_TABLES = ["sessions", "mistakes", "bookmarks", "kv"] as const;
+/** kv entries that describe this install rather than the user, and so are not restored. */
+const LOCAL_KEYS = new Set(["update", "updateDismissed"]);
+
+export type BackupTables = Record<(typeof BACKUP_TABLES)[number], Row[]>;
+
+export function exportTables(): BackupTables {
+  const d = database();
+  const out = {} as BackupTables;
+  for (const t of BACKUP_TABLES) out[t] = d.getAllSync<Row>(`SELECT * FROM ${t}`);
+  out.kv = out.kv.filter((r) => !LOCAL_KEYS.has(String(r.k)));
+  return out;
+}
+
+/**
+ * Replaces everything with a backup, in one transaction: if any row is rejected, nothing changes. Only columns this
+ * version knows are written, so a backup from an older or newer version still restores what both have.
+ */
+export function replaceTables(data: Partial<BackupTables>) {
+  const d = database();
+  d.withTransactionSync(() => {
+    for (const t of [...BACKUP_TABLES].reverse()) {
+      if (t === "kv") d.runSync(`DELETE FROM kv WHERE k NOT IN (${[...LOCAL_KEYS].map(() => "?").join(",")})`, ...LOCAL_KEYS);
+      else d.runSync(`DELETE FROM ${t}`);
+    }
+    for (const t of BACKUP_TABLES) {
+      const known = new Set(d.getAllSync<{ name: string }>(`PRAGMA table_info(${t})`).map((c) => c.name));
+      for (const row of data[t] ?? []) {
+        if (t === "kv" && LOCAL_KEYS.has(String(row.k))) continue;
+        const cols = Object.keys(row).filter((c) => known.has(c));
+        if (cols.length === 0) continue;
+        d.runSync(`INSERT OR REPLACE INTO ${t} (${cols.join(", ")}) VALUES (${cols.map(() => "?").join(", ")})`, ...cols.map((c) => row[c] ?? null));
+      }
+    }
+  });
+  notify();
+}

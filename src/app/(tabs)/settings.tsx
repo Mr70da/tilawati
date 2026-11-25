@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Linking, ScrollView, Switch, Text, View } from "react-native";
+import { Alert, Linking, ScrollView, Switch, Text, View } from "react-native";
 import Constants from "expo-constants";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -11,13 +11,14 @@ import { setLanguage, useI18n } from "@/i18n";
 import { requestReminderPermission, syncReminders } from "@/notify/reminder";
 import { BASMALA } from "@/quran";
 import { deleteTafsir, TAFSIRS, tafsirBytes } from "@/quran/tafsir";
+import { pickAndRestore, shareBackup } from "@/state/backup";
 import { GOAL_AMOUNTS } from "@/state/goal";
 import { checkForUpdate } from "@/update/check";
 import type { Update } from "@/update/check";
 import type { GoalUnit } from "@/state/goal";
 import { updateSettings, useSettings } from "@/state/settings";
 import type { Settings as AppSettings } from "@/state/settings";
-import { Card, Row, Screen, Segmented, T, Tap } from "@/ui/kit";
+import { Button, Card, Row, Screen, Segmented, T, Tap } from "@/ui/kit";
 import type { IconName } from "@/ui/kit";
 import { fonts, radius, space, useTheme } from "@/ui/theme";
 
@@ -103,6 +104,20 @@ export default function Settings() {
       setUpdateState("offline");
     }
   };
+  const onBackup = () => shareBackup(t("settings.backup")).catch(() => Alert.alert(t("settings.backupFailed")));
+  const onRestore = () =>
+    Alert.alert(t("settings.restoreTitle"), t("settings.restoreWarning"), [
+      { text: t("common.cancel"), style: "cancel" },
+      {
+        text: t("settings.restore"),
+        style: "destructive",
+        onPress: async () => {
+          const r = await pickAndRestore().catch(() => ({ ok: false as const, reason: "invalid" as const }));
+          if (r.ok) Alert.alert(t("settings.restoreDone"), tc("settings.restoredSessions", r.sessions));
+          else if (r.reason === "invalid") Alert.alert(t("settings.restoreInvalid"));
+        },
+      },
+    ]);
   const mb = (b: number) => `${num(Math.round(b / 1e5) / 10)} MB`;
 
   const engineLine =
@@ -428,6 +443,16 @@ export default function Settings() {
               </Tap>
             )}
           </Item>
+        </Section>
+
+        <Section title={t("settings.data")}>
+          <T v="caption" muted>
+            {t("settings.dataHint")}
+          </T>
+          <Row gap={space(1)}>
+            <Button title={t("settings.backup")} icon="cloud-upload-outline" kind="secondary" style={{ flex: 1, height: 48 }} onPress={onBackup} />
+            <Button title={t("settings.restore")} icon="cloud-download-outline" kind="ghost" style={{ flex: 1, height: 48 }} onPress={onRestore} />
+          </Row>
         </Section>
 
         <Section title={t("settings.about")}>
