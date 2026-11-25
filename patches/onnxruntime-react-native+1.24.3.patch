@@ -1,0 +1,17 @@
+diff --git a/node_modules/onnxruntime-react-native/android/build.gradle b/node_modules/onnxruntime-react-native/android/build.gradle
+index 41b4359..9f7ec4f 100644
+--- a/node_modules/onnxruntime-react-native/android/build.gradle
++++ b/node_modules/onnxruntime-react-native/android/build.gradle
+@@ -244,10 +244,10 @@ dependencies {
+   if (useQnn) {
+     extractLibs "com.microsoft.onnxruntime:onnxruntime-android-qnn:latest.integration@aar"
+   } else {
+-    extractLibs "com.microsoft.onnxruntime:onnxruntime-android:latest.integration@aar"
++    extractLibs "com.microsoft.onnxruntime:onnxruntime-android:1.24.3@aar" // pinned to match the JS package
+   }
+ 
+-  if (VersionNumber.parse(REACT_NATIVE_VERSION) < VersionNumber.parse("0.71")) {
++  if (REACT_NATIVE_MINOR_VERSION < 71) { // VersionNumber was removed in Gradle 9
+     extractLibs "com.facebook.fbjni:fbjni:+:headers"
+     extractLibs "com.facebook.fbjni:fbjni:+"
+   }

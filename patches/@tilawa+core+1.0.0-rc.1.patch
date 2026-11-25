@@ -1,0 +1,284 @@
+diff --git a/node_modules/@tilawa/core/dist/engine/checker-lexical.js b/node_modules/@tilawa/core/dist/engine/checker-lexical.js
+index 81f9a85..1715081 100644
+--- a/node_modules/@tilawa/core/dist/engine/checker-lexical.js
++++ b/node_modules/@tilawa/core/dist/engine/checker-lexical.js
+@@ -1,3 +1,4 @@
++import { precomputed } from "./precomputed.js";
+ import { collapseHeld, deletionCost, insertionCost, subCost, UNIT } from "./fuzzy.js";
+ const CONSONANTS = new Set("ءبتثجحخدذرزسشصضطظعغفقكلمنهوي");
+ const form = (s) => collapseHeld([...s]).join("");
+@@ -106,12 +107,13 @@ export function hardConsonantEdits(expected, observed) {
+ }
+ /** Shared by checker instances; only supported reference pronunciations enter the whole-word vocabulary. */
+ const cache = new WeakMap();
+-function build(index) {
+-    const forms = index.words.map((w, i) => [...new Set([
++// Tilawati patch: `pre` holds tables precomputed at build time (see precomputed.js); without it, compute as before.
++function build(index, pre) {
++    const forms = pre ? pre.forms : index.words.map((w, i) => [...new Set([
+             index.phonemes.slice(w.start, w.end), ...(index.wordForms?.[i] ?? []),
+         ].filter(Boolean).map(form))]);
+-    const isolated = new Set((index.isolatedWordForms ?? []).filter(Boolean).map(form));
+-    const connected = new Map();
++    const isolated = pre ? new Set(pre.isolated) : new Set((index.isolatedWordForms ?? []).filter(Boolean).map(form));
++    const connected = pre ? new Map(pre.connected.map(([k, v]) => [k, new Set(v)])) : new Map();
+     const sameAyah = (a, b) => b >= 0 && b < index.words.length &&
+         index.words[a].surah === index.words[b].surah && index.words[a].ayah === index.words[b].ayah;
+     const neighbor = (wi, direction) => {
+@@ -123,7 +125,7 @@ function build(index) {
+     const word = (wi) => index.phonemes.slice(index.words[wi].start, index.words[wi].end);
+     const boundary = (text, before) => before ? form(text).at(-1) : form(text)[0];
+     const contextKey = (before, after) => `${before ?? "^"}|${after ?? "$"}`;
+-    index.words.forEach((w, wi) => {
++    if (!pre) index.words.forEach((w, wi) => {
+         if (w.start === w.end)
+             return;
+         const before = neighbor(wi, -1), after = neighbor(wi, 1);
+@@ -134,12 +136,12 @@ function build(index) {
+         connected.set(text, contexts);
+     });
+     const attested = new Set();
+-    for (const list of forms)
++    if (!pre) for (const list of forms)
+         for (const f of list)
+             if (f)
+                 attested.add(f);
+-    const rawByForm = new Map();
+-    for (const list of index.wordForms ?? [])
++    const rawByForm = pre ? new Map(pre.rawByForm) : new Map();
++    if (!pre) for (const list of index.wordForms ?? [])
+         for (const raw of list)
+             if (raw) {
+                 const key = form(raw);
+@@ -152,7 +154,7 @@ function build(index) {
+                     rawByForm.set(key, [raw]);
+             }
+     // Forms that share a stem and differ by a short tail. Queried from the written word's own tail, never from a verse.
+-    const byStem = new Map();
++    const byStem = pre ? new Map(pre.byStem) : new Map();
+     for (const f of attested)
+         for (let n = 0; n <= END && n < f.length; n++) {
+             const stem = f.slice(0, f.length - n);
+@@ -270,9 +272,9 @@ function build(index) {
+     const MARK = new Set(["ڇ", "ۜ", "ؙ"]);
+     const norm = (s) => collapseHeld([...s].filter(c => !MARK.has(c))).join("");
+     const skel = (s) => [...s].filter(c => CONSONANTS.has(c)).join("");
+-    const wordNorms = forms.map(list => [...new Set(list.map(norm).filter(Boolean))]);
+-    const bySkel = new Map();
+-    for (const list of wordNorms)
++    const wordNorms = pre ? pre.wordNorms : forms.map(list => [...new Set(list.map(norm).filter(Boolean))]);
++    const bySkel = pre ? new Map(pre.bySkel) : new Map();
++    if (!pre) for (const list of wordNorms)
+         for (const n of list) {
+             const sk = skel(n);
+             if (sk.length < 2)
+@@ -365,6 +367,8 @@ function build(index) {
+         return null;
+     };
+     return {
++        /** Tilawati patch: the built tables, so a build step can save them. */
++        tables: { forms, isolated, connected, rawByForm, byStem, wordNorms, bySkel },
+         matches,
+         ending,
+         droppedSuffixes,
+@@ -384,7 +388,7 @@ function build(index) {
+ export function lexicalWords(index) {
+     let words = cache.get(index);
+     if (!words) {
+-        words = build(index);
++        words = build(index, precomputed(index, "lexical"));
+         cache.set(index, words);
+     }
+     return words;
+diff --git a/node_modules/@tilawa/core/dist/engine/formula-slots.js b/node_modules/@tilawa/core/dist/engine/formula-slots.js
+index 45268e5..7b7d294 100644
+--- a/node_modules/@tilawa/core/dist/engine/formula-slots.js
++++ b/node_modules/@tilawa/core/dist/engine/formula-slots.js
+@@ -1,4 +1,5 @@
+ import { letterSkeleton } from "./parallel-phrases.js";
++import { precomputed } from "./precomputed.js";
+ const cache = new WeakMap();
+ /**
+  * Pausal fillers of an ayah's final word after the identical two-word lead. The ayah boundary closes
+@@ -9,6 +10,12 @@ export function formulaSlots(index) {
+     const hit = cache.get(index);
+     if (hit)
+         return hit;
++    const pre = precomputed(index, "formula");
++    if (pre) {
++        const map = new Map(pre);
++        cache.set(index, map);
++        return map;
++    }
+     const slots = new Map();
+     const text = index.wordText;
+     if (!text || text.length !== index.words.length) {
+diff --git a/node_modules/@tilawa/core/dist/engine/index-tables.d.ts b/node_modules/@tilawa/core/dist/engine/index-tables.d.ts
+new file mode 100644
+index 0000000..8f66c48
+--- /dev/null
++++ b/node_modules/@tilawa/core/dist/engine/index-tables.d.ts
+@@ -0,0 +1,2 @@
++/** The checker's index tables for `index`, JSON-serializable, for `setPrecomputedIndexes`. */
++export declare function computeIndexTables(index: unknown): unknown;
+diff --git a/node_modules/@tilawa/core/dist/engine/index-tables.js b/node_modules/@tilawa/core/dist/engine/index-tables.js
+new file mode 100644
+index 0000000..9a14127
+--- /dev/null
++++ b/node_modules/@tilawa/core/dist/engine/index-tables.js
+@@ -0,0 +1,29 @@
++/** Tilawati patch: builds the checker's index tables in a JSON-friendly shape (see precomputed.js). */
++import { lexicalWords } from "./checker-lexical.js";
++import { formulaSlots } from "./formula-slots.js";
++import { maddSites } from "./madd-drops.js";
++import { parallelPaths } from "./parallel-phrases.js";
++import { slotSpans } from "./slot-spans.js";
++import { INDEX_TABLES_VERSION } from "./precomputed.js";
++export function computeIndexTables(index) {
++    const lx = lexicalWords(index).tables;
++    const madd = maddSites(index);
++    return {
++        v: INDEX_TABLES_VERSION,
++        words: index.words.length,
++        phonemes: index.phonemes.length,
++        parallel: [...parallelPaths(index)],
++        formula: [...formulaSlots(index)],
++        spans: slotSpans(index),
++        madd: { munfasil: [...madd.munfasil], drops: [...madd.drops] },
++        lexical: {
++            forms: lx.forms,
++            isolated: [...lx.isolated],
++            connected: [...lx.connected].map(([k, v]) => [k, [...v]]),
++            rawByForm: [...lx.rawByForm],
++            byStem: [...lx.byStem],
++            wordNorms: lx.wordNorms,
++            bySkel: [...lx.bySkel],
++        },
++    };
++}
+diff --git a/node_modules/@tilawa/core/dist/engine/madd-drops.js b/node_modules/@tilawa/core/dist/engine/madd-drops.js
+index 8c3711b..014ed73 100644
+--- a/node_modules/@tilawa/core/dist/engine/madd-drops.js
++++ b/node_modules/@tilawa/core/dist/engine/madd-drops.js
+@@ -1,3 +1,4 @@
++import { precomputed } from "./precomputed.js";
+ import { letterSkeleton } from "./parallel-phrases.js";
+ /** Madd letters in the reference inventory. A run of these at a word end is the long vowel. */
+ const MADD = new Set(["ا", "ۦ", "ۥ"]);
+@@ -26,6 +27,12 @@ export function maddSites(index) {
+     const hit = cache.get(index);
+     if (hit)
+         return hit;
++    const pre = precomputed(index, "madd");
++    if (pre) {
++        const sites = { munfasil: new Map(pre.munfasil), drops: new Map(pre.drops) };
++        cache.set(index, sites);
++        return sites;
++    }
+     const text = index.wordText;
+     const empty = { munfasil: new Map(), drops: new Map() };
+     if (!text || text.length !== index.words.length) {
+diff --git a/node_modules/@tilawa/core/dist/engine/parallel-phrases.js b/node_modules/@tilawa/core/dist/engine/parallel-phrases.js
+index cb1b41d..c49148f 100644
+--- a/node_modules/@tilawa/core/dist/engine/parallel-phrases.js
++++ b/node_modules/@tilawa/core/dist/engine/parallel-phrases.js
+@@ -1,3 +1,4 @@
++import { precomputed } from "./precomputed.js";
+ /**
+  * Nats by which an attested parallel phrase must beat the written phrase on the CTC forward sum.
+  * Correct unspliced surah-37 recitations by four readers outside the lab held-out set, decoded with the
+@@ -42,6 +43,12 @@ export function parallelPaths(index) {
+     let hit = cache.get(index);
+     if (hit)
+         return hit;
++    const pre = precomputed(index, "parallel");
++    if (pre) {
++        const map = new Map(pre);
++        cache.set(index, map);
++        return map;
++    }
+     const text = index.wordText;
+     const map = new Map();
+     if (!text || text.length !== index.words.length) {
+diff --git a/node_modules/@tilawa/core/dist/engine/precomputed.d.ts b/node_modules/@tilawa/core/dist/engine/precomputed.d.ts
+new file mode 100644
+index 0000000..113ccf7
+--- /dev/null
++++ b/node_modules/@tilawa/core/dist/engine/precomputed.d.ts
+@@ -0,0 +1,4 @@
++export declare const INDEX_TABLES_VERSION = 2;
++/** Index tables from `computeIndexTables`, for the same reference the engine loads. Pass null to clear. */
++export declare function setPrecomputedIndexes(t: unknown): void;
++export declare function precomputed(index: unknown, key: string): any;
+diff --git a/node_modules/@tilawa/core/dist/engine/precomputed.js b/node_modules/@tilawa/core/dist/engine/precomputed.js
+new file mode 100644
+index 0000000..badf25d
+--- /dev/null
++++ b/node_modules/@tilawa/core/dist/engine/precomputed.js
+@@ -0,0 +1,16 @@
++/**
++ * Tilawati patch: index tables computed ahead of time (scripts/precompute-engine.mjs) for one reference.
++ * The builders (lexicalWords, parallelPaths, maddSites, formulaSlots, slotSpans) use them instead of rebuilding,
++ * which takes seconds in Hermes. Tables only apply to an index of the same shape; otherwise everything is built
++ * as before.
++ */
++let tables = null;
++export const INDEX_TABLES_VERSION = 2;
++export function setPrecomputedIndexes(t) {
++    tables = t && t.v === INDEX_TABLES_VERSION ? t : null;
++}
++export function precomputed(index, key) {
++    if (!tables || tables.words !== index.words.length || tables.phonemes !== index.phonemes.length)
++        return null;
++    return tables[key] ?? null;
++}
+diff --git a/node_modules/@tilawa/core/dist/engine/slot-spans.js b/node_modules/@tilawa/core/dist/engine/slot-spans.js
+index bb42836..d029bb4 100644
+--- a/node_modules/@tilawa/core/dist/engine/slot-spans.js
++++ b/node_modules/@tilawa/core/dist/engine/slot-spans.js
+@@ -1,5 +1,6 @@
+ import { deletionCost, insertionCost, subCost, UNIT } from "./fuzzy.js";
+ import { letterSkeleton } from "./parallel-phrases.js";
++import { precomputed } from "./precomputed.js";
+ const cache = new WeakMap();
+ /** Ayahs of equal length whose skeletons differ in at most one word. The differing offsets, or null. */
+ function compat(ayahs, i, j) {
+@@ -36,6 +37,11 @@ export function slotSpans(index) {
+     const hit = cache.get(index);
+     if (hit)
+         return hit;
++    const pre = precomputed(index, "spans");
++    if (pre) {
++        cache.set(index, pre);
++        return pre;
++    }
+     const text = index.wordText;
+     if (!text || text.length !== index.words.length) {
+         cache.set(index, []);
+diff --git a/node_modules/@tilawa/core/dist/index.d.ts b/node_modules/@tilawa/core/dist/index.d.ts
+index 2536325..a9289ff 100644
+--- a/node_modules/@tilawa/core/dist/index.d.ts
++++ b/node_modules/@tilawa/core/dist/index.d.ts
+@@ -13,6 +13,8 @@ export { ALL_CLASSES, MEMORIZATION_CLASSES } from "./runtime/capabilities.js";
+ export { ayahsRecited } from "./recited.js";
+ export type { DecodedPhoneme, PhonemeEvidence, TopKPosteriors } from "./engine/index.js";
+ export { loadReferenceIndex } from "./engine/index.js";
++export { setPrecomputedIndexes } from "./engine/precomputed.js";
++export { computeIndexTables } from "./engine/index-tables.js";
+ export type { AyahRef, PhraseAsset, ReferenceAsset, ReferenceIndex } from "./engine/index.js";
+ export { MODEL_REGISTRY, withBase } from "./runtime/registry.js";
+ export { MODEL_BUDGET_BYTES, fetchModel, memoryStorage } from "./runtime/models.js";
+diff --git a/node_modules/@tilawa/core/dist/index.js b/node_modules/@tilawa/core/dist/index.js
+index 4d8f389..43ab8ff 100644
+--- a/node_modules/@tilawa/core/dist/index.js
++++ b/node_modules/@tilawa/core/dist/index.js
+@@ -10,6 +10,9 @@ export { ALL_CLASSES, MEMORIZATION_CLASSES } from "./runtime/capabilities.js";
+ export { ayahsRecited } from "./recited.js";
+ // Reference
+ export { loadReferenceIndex } from "./engine/index.js";
++// Tilawati patch: precomputed index tables.
++export { setPrecomputedIndexes } from "./engine/precomputed.js";
++export { computeIndexTables } from "./engine/index-tables.js";
+ // Models
+ export { MODEL_REGISTRY, withBase } from "./runtime/registry.js";
+ export { MODEL_BUDGET_BYTES, fetchModel, memoryStorage } from "./runtime/models.js";

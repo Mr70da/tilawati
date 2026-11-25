@@ -1,0 +1,2 @@
+*.onnx filter=lfs diff=lfs merge=lfs -text
+assets/tilawa/engine-tables.txt filter=lfs diff=lfs merge=lfs -text
