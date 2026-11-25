@@ -15,7 +15,7 @@
 [![Offline](https://img.shields.io/badge/recognition-on--device-B08236?style=flat-square)](#privacy)
 [![License](https://img.shields.io/badge/license-MIT-555?style=flat-square)](LICENSE)
 
-<a href="https://github.com/Mr70da/tilawati/releases/latest/download/Tilawati-1.2.0-arm64.apk"><img src="https://img.shields.io/badge/Download%20APK-Android%20·%20144%20MB-0F5D46?style=for-the-badge&logo=android&logoColor=white" alt="Download APK" height="40"/></a>
+<a href="https://github.com/Mr70da/tilawati/releases/latest/download/Tilawati-1.2.0-arm64.apk"><img src="https://img.shields.io/badge/Download%20APK-Android%20·%20145%20MB-0F5D46?style=for-the-badge&logo=android&logoColor=white" alt="Download APK" height="40"/></a>
 
 <sub>Android 64-bit · <a href="https://github.com/Mr70da/tilawati/releases/latest">release notes</a> · تحميل التطبيق</sub>
 
