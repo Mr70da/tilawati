@@ -65,3 +65,10 @@ test("finishing the last ayah completes a khatma and starts again", async () => 
   assert.deepEqual(advance(COUNTS, { surah: 3, ayah: 1 }, ["3:1", "3:2"]), { pos: { surah: 1, ayah: 1 }, finished: true });
   assert.equal(ordinal(COUNTS, { surah: 3, ayah: 2 }), 11);
 });
+
+test("version comparison handles multi-digit parts and a leading v", async () => {
+  const { compareVersions } = await import("../src/update/compare.ts");
+  assert.equal(compareVersions("1.10.0", "1.9.2"), 1);
+  assert.equal(compareVersions("v1.1.0", "1.1.0"), 0);
+  assert.equal(compareVersions("1.0.0", "1.1"), -1);
+});

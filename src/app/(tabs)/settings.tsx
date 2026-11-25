@@ -12,6 +12,8 @@ import { requestReminderPermission, syncReminders } from "@/notify/reminder";
 import { BASMALA } from "@/quran";
 import { deleteTafsir, TAFSIRS, tafsirBytes } from "@/quran/tafsir";
 import { GOAL_AMOUNTS } from "@/state/goal";
+import { checkForUpdate } from "@/update/check";
+import type { Update } from "@/update/check";
 import type { GoalUnit } from "@/state/goal";
 import { updateSettings, useSettings } from "@/state/settings";
 import type { Settings as AppSettings } from "@/state/settings";
@@ -92,6 +94,15 @@ export default function Settings() {
   const timeLabel =
     `${num(h12)}:${num(String(s.reminderMinute).padStart(2, "0"))} ` +
     (lang === "ar" ? (s.reminderHour < 12 ? "ص" : "م") : s.reminderHour < 12 ? "AM" : "PM");
+  const [updateState, setUpdateState] = useState<null | "checking" | "none" | "offline" | Update>(null);
+  const onCheckUpdate = async () => {
+    setUpdateState("checking");
+    try {
+      setUpdateState((await checkForUpdate(true)) ?? "none");
+    } catch {
+      setUpdateState("offline");
+    }
+  };
   const mb = (b: number) => `${num(Math.round(b / 1e5) / 10)} MB`;
 
   const engineLine =
@@ -445,6 +456,32 @@ export default function Settings() {
             <T v="caption" muted>
               {num(Constants.expoConfig?.version ?? "1.0.0")}
             </T>
+          </Row>
+          <Row style={{ justifyContent: "space-between" }} gap={space(1)}>
+            <T v="caption" muted style={{ flex: 1 }}>
+              {updateState === "checking"
+                ? t("update.checking")
+                : updateState === "none"
+                  ? t("update.upToDate")
+                  : updateState === "offline"
+                    ? t("update.offline")
+                    : updateState
+                      ? t("update.available", { v: num(updateState.version) })
+                      : ""}
+            </T>
+            {updateState && typeof updateState === "object" ? (
+              <Tap onPress={() => Linking.openURL(updateState.url).catch(() => {})} hitSlop={8}>
+                <T v="label" color={c.primary}>
+                  {t("update.download")}
+                </T>
+              </Tap>
+            ) : (
+              <Tap onPress={onCheckUpdate} hitSlop={8} disabled={updateState === "checking"}>
+                <T v="label" color={c.primary}>
+                  {t("update.check")}
+                </T>
+              </Tap>
+            )}
           </Row>
           <Tap onPress={() => Linking.openURL(DEVELOPER.linkedin).catch(() => {})} accessibilityLabel={t("settings.linkedin")}>
             <Row gap={space(1.5)} style={{ backgroundColor: c.surfaceAlt, borderRadius: radius.md, padding: space(1.25) }}>

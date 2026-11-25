@@ -183,6 +183,16 @@ export const en = {
   credits: {
     title: "Credits",
   },
+  update: {
+    available: "Version {{v}} is available",
+    hint: "Download the new APK and open it to update. Your history and settings are kept.",
+    download: "Download",
+    later: "Not now",
+    check: "Check for updates",
+    checking: "Checking…",
+    upToDate: "You have the latest version",
+    offline: "No connection. Try again later.",
+  },
   goal: {
     pages: "Pages",
     ayahs: "Ayahs",
@@ -411,6 +421,16 @@ export const ar = {
       "ينبّه التطبيق على أخطاء الحفظ (كلمة خاطئة أو ناقصة أو زائدة، أو مقطع متجاوَز) برواية حفص. لا يقيّم التجويد بعد. اعتبر كل تنبيه دعوة للتحقق لا حكمًا نهائيًا.",
   },
   credits: { title: "الشكر" },
+  update: {
+    available: "الإصدار {{v}} متاح",
+    hint: "نزّل ملف APK الجديد وافتحه للتحديث. يبقى سجلك وإعداداتك كما هي.",
+    download: "تنزيل",
+    later: "ليس الآن",
+    check: "البحث عن تحديث",
+    checking: "جارٍ البحث…",
+    upToDate: "لديك أحدث إصدار",
+    offline: "لا يوجد اتصال. حاول لاحقًا.",
+  },
   goal: {
     pages: "صفحات",
     ayahs: "آيات",

@@ -15,7 +15,7 @@
 [![Offline](https://img.shields.io/badge/recognition-on--device-B08236?style=flat-square)](#privacy)
 [![License](https://img.shields.io/badge/license-MIT-555?style=flat-square)](LICENSE)
 
-<a href="https://github.com/Mr70da/tilawati/releases/latest/download/Tilawati-1.0.0-arm64.apk"><img src="https://img.shields.io/badge/Download%20APK-Android%20·%20144%20MB-0F5D46?style=for-the-badge&logo=android&logoColor=white" alt="Download APK" height="40"/></a>
+<a href="https://github.com/Mr70da/tilawati/releases/latest/download/Tilawati-1.1.0-arm64.apk"><img src="https://img.shields.io/badge/Download%20APK-Android%20·%20144%20MB-0F5D46?style=for-the-badge&logo=android&logoColor=white" alt="Download APK" height="40"/></a>
 
 <sub>Android 64-bit · <a href="https://github.com/Mr70da/tilawati/releases/latest">release notes</a> · تحميل التطبيق</sub>
 
@@ -99,7 +99,7 @@ Both model tiers ship inside the app, so nothing is ever downloaded:
 
 ### Just want the app?
 
-Download **[Tilawati-1.0.0-arm64.apk](https://github.com/Mr70da/tilawati/releases/latest/download/Tilawati-1.0.0-arm64.apk)** on your Android phone and open it. Android will ask you to allow installing from your browser or file manager.
+Download **[Tilawati-1.1.0-arm64.apk](https://github.com/Mr70da/tilawati/releases/latest/download/Tilawati-1.1.0-arm64.apk)** on your Android phone and open it. Android will ask you to allow installing from your browser or file manager. The app tells you when a newer version is out.
 
 ### Run on a phone or emulator
 
@@ -119,6 +119,8 @@ TILAWATI_RELEASE=1 npx expo prebuild --platform android --clean
 cd android && ./gradlew assembleRelease
 adb install -r app/build/outputs/apk/release/app-release.apk
 ```
+
+Release builds are signed with the key described in `~/.tilawati/keystore.properties` (`storeFile`, `storePassword`, `keyAlias`, `keyPassword`), or the file named by `TILAWATI_KEYSTORE_PROPS`. The key never goes in the repo. Without it, a release build stops with a signing error. To build your own copy, create a key with `keytool -genkeypair` and point that file at it.
 
 > [!TIP]
 > To build for one CPU only (faster, and a smaller APK), add `-PreactNativeArchitectures=arm64-v8a` to the Gradle command.

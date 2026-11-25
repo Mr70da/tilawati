@@ -1,4 +1,5 @@
-import { ScrollView, View } from "react-native";
+import { useEffect, useState } from "react";
+import { Linking, ScrollView, View } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -9,8 +10,10 @@ import { goalProgress } from "@/state/goal";
 import type { GoalProgress } from "@/state/goal";
 import { useSettings } from "@/state/settings";
 import { khatmaProgress, wirdPassage } from "@/state/wird";
+import { checkForUpdate, dismissUpdate, isDismissed } from "@/update/check";
+import type { Update } from "@/update/check";
 import { useDb } from "@/state/useDb";
-import { Card, Row, Screen, T, Tap } from "@/ui/kit";
+import { Button, Card, Row, Screen, T, Tap } from "@/ui/kit";
 import { SessionRow } from "@/ui/SessionRow";
 import { fonts, radius, space, useTheme } from "@/ui/theme";
 
@@ -26,6 +29,14 @@ export default function Home() {
   const maxWeek = Math.max(10, ...stats.week);
   const dayLetters = lang === "ar" ? ["ح", "ن", "ث", "ر", "خ", "ج", "س"] : ["S", "M", "T", "W", "T", "F", "S"];
   const today = new Date().getDay();
+  const [update, setUpdate] = useState<Update | null>(null);
+  useEffect(() => {
+    let live = true;
+    checkForUpdate().then((u) => live && setUpdate(u && !isDismissed(u) ? u : null));
+    return () => {
+      live = false;
+    };
+  }, []);
 
   return (
     <Screen>
@@ -37,6 +48,37 @@ export default function Home() {
           <T v="display">{t("appName")}</T>
           <T muted>{t("home.subtitle")}</T>
         </View>
+
+        {update && (
+          <Card style={{ borderWidth: 1, borderColor: c.primary }}>
+            <Row gap={space(1.5)}>
+              <Ionicons name="arrow-down-circle" size={26} color={c.primary} />
+              <View style={{ flex: 1 }}>
+                <T v="heading">{t("update.available", { v: num(update.version) })}</T>
+                <T v="caption" muted>
+                  {t("update.hint")}
+                </T>
+              </View>
+            </Row>
+            <Row gap={space(1)} style={{ marginTop: space(1.5) }}>
+              <Button
+                title={t("update.download")}
+                icon="download-outline"
+                style={{ flex: 1, height: 44 }}
+                onPress={() => Linking.openURL(update.url).catch(() => {})}
+              />
+              <Button
+                title={t("update.later")}
+                kind="ghost"
+                style={{ height: 44 }}
+                onPress={() => {
+                  dismissUpdate(update);
+                  setUpdate(null);
+                }}
+              />
+            </Row>
+          </Card>
+        )}
 
         {/* Primary action */}
         <Tap onPress={() => router.push("/recite?mode=free")} scaleTo={0.98}>

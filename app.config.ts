@@ -2,14 +2,14 @@ import type { ExpoConfig } from "expo/config";
 
 /**
  * Recitation runs fully on-device. The INTERNET permission is there only to download reciters' audio for
- * "Listen & repeat" (and, in dev builds, to reach the Metro bundler).
+ * "Listen & repeat", tafsir and the update check (and, in dev builds, to reach the Metro bundler).
  */
 const release = process.env.TILAWATI_RELEASE === "1";
 
 const config: ExpoConfig = {
   name: "Tilawati",
   slug: "tilawati",
-  version: "1.0.0",
+  version: "1.1.0",
   orientation: "portrait",
   icon: "./assets/images/icon.png",
   scheme: "tilawati",
@@ -17,7 +17,7 @@ const config: ExpoConfig = {
   backgroundColor: "#0B1F1A",
   android: {
     package: "com.exab.tilawati",
-    versionCode: 1,
+    versionCode: 2,
     adaptiveIcon: {
       backgroundColor: "#0B3D2E",
       foregroundImage: "./assets/images/android-icon-foreground.png",
@@ -36,6 +36,7 @@ const config: ExpoConfig = {
     },
   },
   plugins: [
+    "./plugins/withReleaseSigning",
     "expo-router",
     "expo-sqlite",
     ["expo-notifications", { icon: "./assets/images/notification-icon.png", color: "#13704F" }],
